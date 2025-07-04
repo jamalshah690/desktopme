@@ -1,5 +1,6 @@
 import 'package:desktopme/feature/todo/data/todo_local_db.dart';
 import 'package:desktopme/feature/todo/domain/todo_model.dart';
+import 'package:desktopme/shared/services/logger_service.dart';
 import 'package:desktopme/shared/services/sessionManger/session_controller.dart';
 import 'package:flutter/widgets.dart';
 
@@ -19,9 +20,13 @@ class TodoProvider extends ChangeNotifier {
 
   bool isAddLoading = false;
 
-  Future<void> insertData({required TodoModel todo}) async {
+  Future<void> insertData({
+    required TodoModel todo,
+    required BuildContext context,
+  }) async {
     try {
-      isAddLoading = true; notifyListeners();
+      isAddLoading = true;
+      notifyListeners();
       int userId = SessionController().userDataModel.id!;
       final dateNow = DateTime.now().toIso8601String();
       final todoModel = TodoModel(
@@ -32,17 +37,32 @@ class TodoProvider extends ChangeNotifier {
         updatedAt: dateNow,
         userId: userId,
       );
-      await _todoLocalDataSource.createTodoTask(todo: todoModel);
-      await getAllTask();
-      isAddLoading = false; notifyListeners();
+      await _todoLocalDataSource.createTodoTask(todo: todoModel).then((
+        onValue,
+      ) async {
+        await getAllTask();
+        isAddLoading = false;
+        LoggerService.logger.i("Task added"); 
+
+        notifyListeners();
+        Navigator.of(context).pop(true);
+      });
     } catch (e) {
-      isAddLoading = false; notifyListeners();
+      isAddLoading = false;
+      notifyListeners();
       print(e.toString());
+
+      LoggerService.logger.e("Failed to insert  data");
     }
   }
 
-  Future<void> updateData({required TodoModel todo}) async {
-    try {isAddLoading = true; notifyListeners();
+  Future<void> updateData({
+    required TodoModel todo,
+    required BuildContext context,
+  }) async {
+    try {
+      isAddLoading = true;
+      notifyListeners();
       int userId = SessionController().userDataModel.id!;
       final dateNow = DateTime.now().toIso8601String();
       final todoModel = TodoModel(
@@ -54,12 +74,37 @@ class TodoProvider extends ChangeNotifier {
         updatedAt: dateNow,
         userId: userId,
       );
-      print(todoModel.id.toString()+todoModel.userId.toString()+todoModel.createdAt.toString()+todoModel.description+todoModel.title+todoModel.updatedAt.toString());
-      await _todoLocalDataSource.updateTask(todo: todoModel);
-       await getAllTask();
-      isAddLoading = false; notifyListeners();
-    } catch (e) {  
-      isAddLoading = false; notifyListeners();
+      print(
+        todoModel.id.toString() +
+            todoModel.userId.toString() +
+            todoModel.createdAt.toString() +
+            todoModel.description +
+            todoModel.title +
+            todoModel.updatedAt.toString(),
+      );
+
+      LoggerService.logger.i(
+        todoModel.id.toString() +
+            todoModel.userId.toString() +
+            todoModel.createdAt.toString() +
+            todoModel.description +
+            todoModel.title +
+            todoModel.updatedAt.toString(),
+      );
+
+      await _todoLocalDataSource.updateTask(todo: todoModel).then((
+        onValue,
+      ) async {
+        await getAllTask(); LoggerService.logger.i("Task Updated");
+        Navigator.of(context).pop();
+        isAddLoading = false;
+        notifyListeners();
+      });
+    } catch (e) {
+      LoggerService.logger.e("Failed to update  data");
+
+      isAddLoading = false;
+      notifyListeners();
       print(e.toString());
     }
   }
@@ -76,8 +121,10 @@ class TodoProvider extends ChangeNotifier {
       todoList = result;
       print(todoList.length);
       notifyListeners();
+       LoggerService.logger.i("Task get");
     } catch (e) {
       print(e.toString());
+      LoggerService.logger.e("Failed to getAllData  data");
     }
   }
 
@@ -87,12 +134,14 @@ class TodoProvider extends ChangeNotifier {
       notifyListeners();
       await _todoLocalDataSource.deleteTask(todoId: id);
       isAddLoading = false;
-     await getAllTask();
+      await getAllTask();
+       LoggerService.logger.i("Task delete");
       notifyListeners();
     } catch (e) {
       isAddLoading = false;
       notifyListeners();
       print(e.toString());
+      LoggerService.logger.e("Failed to delete  data");
     }
   }
 }

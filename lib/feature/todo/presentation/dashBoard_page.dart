@@ -21,7 +21,7 @@ class _DashboardPageState extends State<DashboardPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    Provider.of<TodoProvider>(context, listen: false).getAllTask();
+    SessionController().userDataModel.id.toString().isEmpty?null: Provider.of<TodoProvider>(context, listen: false).getAllTask();
      Provider.of<TodoProvider>(context, listen: false).selectedIndex=0;
   }
 
@@ -135,8 +135,9 @@ class _DashboardPageState extends State<DashboardPage> {
                         BookingTabs(
                           index: 0,
                           selectedIndex: state.selectedIndex,
-                          onTap: () {
+                          onTap: () async{
                             state.updateIndex(0);
+                           SessionController().userDataModel.id.toString().isEmpty?null: await state.getAllTask();
                           },
                           title: 'All Task',
                         ),
@@ -146,6 +147,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           selectedIndex: state.selectedIndex,
                           onTap: () {
                             state.updateIndex(1);
+                            
                           },
                           title: 'Active Task',
                         ),

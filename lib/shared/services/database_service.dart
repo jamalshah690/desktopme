@@ -1,3 +1,4 @@
+import 'package:desktopme/shared/services/logger_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart'; 
 
@@ -19,7 +20,9 @@ class DatabaseServices {
         ),
       );
     } catch (e) {
-      print(' Error initializing database: $e');
+      print(' Error initializing database: $e'); 
+LoggerService.logger.e("Failed to initializing database $e");
+
       rethrow;
     }
   }
@@ -52,7 +55,9 @@ class DatabaseServices {
       )
     ''');
     } catch (e) {
-      print(' Error creating tables: $e');
+      print(' Error creating tables: $e'); 
+LoggerService.logger.e("Failed to Ctreating table $e");
+
       rethrow;
     }
   }

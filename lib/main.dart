@@ -4,6 +4,7 @@ import 'package:desktopme/feature/auth/presentation/login_page.dart';
 import 'package:desktopme/feature/auth/presentation/main_ui.dart';
 import 'package:desktopme/feature/auth/provider/auth_provider.dart';
 import 'package:desktopme/feature/todo/provider/todo_provider.dart';
+import 'package:desktopme/shared/services/logger_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -20,13 +21,14 @@ void main()async{
     windowButtonVisibility: true
      
   );
-
+await LoggerService.init(); // Initialize logger before anything
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.setMinimumSize(const Size(600, 800));
     await windowManager.setMaximumSize(const Size(1600, 1200));
     await windowManager.show();
     await windowManager.focus();
   });
+  
   runApp(const MyApp());
 }
 

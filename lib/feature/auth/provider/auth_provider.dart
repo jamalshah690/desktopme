@@ -5,6 +5,7 @@ import 'package:desktopme/core/configs/routes/routes.dart';
 import 'package:desktopme/core/enums/view_state.dart';
 import 'package:desktopme/feature/auth/data/auth_local_db.dart';
 import 'package:desktopme/feature/auth/domain/user_model.dart';
+import 'package:desktopme/shared/services/logger_service.dart';
 import 'package:desktopme/shared/services/sessionManger/session_controller.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +31,7 @@ class AuthProvider extends ChangeNotifier {
       if (retrunUserResult != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(backgroundColor: AppColors.green,content: Text('✅ User SignIn successfully')),
-        );
+        ); LoggerService.logger.e("User SignIn successfully");
         await SessionController().saveUserPreference(retrunUserResult);
         await SessionController().getUserPreference();
         signInStatus = false;
@@ -47,7 +48,7 @@ class AuthProvider extends ChangeNotifier {
           const SnackBar(
             backgroundColor: AppColors.error,
             content: Text('⚠️ Invalid User')),
-        );
+        ); LoggerService.logger.e("Invalid User");
         signInStatus = false;
         notifyListeners();
       }
@@ -56,9 +57,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       debugPrint(signInStatus.toString());
        
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('❌ Error: $e')));
+       LoggerService.logger.e("login catch error $e");
     }
   }
 
@@ -77,7 +76,7 @@ class AuthProvider extends ChangeNotifier {
       if (userInsertResult != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(backgroundColor: AppColors.green,content: Text('✅ User registered successfully')),
-        );
+        );LoggerService.logger.e("User registered successfully");
         await SessionController().saveUserPreference(userInsertResult.user);
         await SessionController().getUserPreference();
         signUpStatus = false;
@@ -94,7 +93,7 @@ class AuthProvider extends ChangeNotifier {
           const SnackBar(
             backgroundColor: AppColors.error,
             content: Text('⚠️ User already registered')),
-        );
+        );LoggerService.logger.e("User already registered");
         signUpStatus = false;
         notifyListeners();
       }
@@ -103,9 +102,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       debugPrint(signUpStatus.toString());
        
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('❌ Error: $e')));
+     LoggerService.logger.e("signup error $e");
     }
   }
 
@@ -125,6 +122,7 @@ class AuthProvider extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
       debugPrint('Logout error: $e');
+      LoggerService.logger.e("logout error $e");
     }
   }
 }

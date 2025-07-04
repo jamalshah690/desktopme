@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
  
 import 'package:desktopme/feature/auth/domain/user_model.dart';
+import 'package:desktopme/shared/services/logger_service.dart';
 import 'package:desktopme/shared/services/storage/local_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -38,7 +39,9 @@ class SessionController {
       final myLogin = (await storage.getData(key: 'isLogin'))?.toString(); 
       SessionController().isLogin = myLogin == 'true'; 
     } catch (e) {
-      print("Error: $e");
+      print("Error: $e"); 
+LoggerService.logger.e("Failed to get data");
+
     }
   }
    

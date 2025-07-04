@@ -173,7 +173,7 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
                                 await Provider.of<TodoProvider>(
                                   context,
                                   listen: false,
-                                ).updateData(
+                                ).updateData(context: context,
                                   todo: TodoModel(
                                     id: widget.todo.id,
                                     title: _titleController.text
@@ -187,8 +187,7 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
                                     updatedAt: '',
                                     userId: widget.todo.userId,
                                   ),
-                                );
-                                Navigator.of(context).pop();
+                                ); 
                               }
                             },
                       childWidget: val.isAddLoading == true

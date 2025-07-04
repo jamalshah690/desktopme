@@ -76,7 +76,7 @@ class LoginPage extends StatelessWidget {
                           ),
                         )
                       : Text(
-                          'Sign Up',
+                          'Sign In',
                           style: TextStyle(
                             fontSize: 12,
                             color: AppColors.white,

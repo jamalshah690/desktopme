@@ -166,7 +166,7 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
                                 await Provider.of<TodoProvider>(
                                   context,
                                   listen: false,
-                                ).insertData(
+                                ).insertData(context: context,
                                   todo: TodoModel(
                                     title: _titleController.text
                                         .trim()
@@ -180,7 +180,7 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
                                     userId: 0,
                                   ),
                                 );
-                                Navigator.of(context).pop();
+                                
                               }
                             },
                       childWidget: val.isAddLoading == true
