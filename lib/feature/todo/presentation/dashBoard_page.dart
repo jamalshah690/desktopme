@@ -1,5 +1,6 @@
 import 'package:desktopme/core/configs/colors/app_colors.dart';
 import 'package:desktopme/feature/auth/provider/auth_provider.dart';
+import 'package:desktopme/feature/todo/domain/todo_model.dart';
 import 'package:desktopme/feature/todo/presentation/widgets/add_dailog.dart';
 import 'package:desktopme/feature/todo/presentation/widgets/booking_tab.dart';
 import 'package:desktopme/feature/todo/presentation/widgets/card_component.dart';
@@ -21,8 +22,14 @@ class _DashboardPageState extends State<DashboardPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    SessionController().userDataModel.id.toString().isEmpty?null: Provider.of<TodoProvider>(context, listen: false).getAllTask();
-     Provider.of<TodoProvider>(context, listen: false).selectedIndex=0;
+    checking();
+  }
+
+  checking() async {
+    await SessionController().userDataModel.id.toString().isEmpty
+        ? null
+        : Provider.of<TodoProvider>(context, listen: false).getAllTask();
+    Provider.of<TodoProvider>(context, listen: false).selectedIndex = 0;
   }
 
   @override
@@ -135,9 +142,13 @@ class _DashboardPageState extends State<DashboardPage> {
                         BookingTabs(
                           index: 0,
                           selectedIndex: state.selectedIndex,
-                          onTap: () async{
+                          onTap: () async {
                             state.updateIndex(0);
-                           SessionController().userDataModel.id.toString().isEmpty?null: await state.getAllTask();
+                            SessionController().userDataModel.id
+                                    .toString()
+                                    .isEmpty
+                                ? null
+                                : await state.getAllTask();
                           },
                           title: 'All Task',
                         ),
@@ -147,7 +158,6 @@ class _DashboardPageState extends State<DashboardPage> {
                           selectedIndex: state.selectedIndex,
                           onTap: () {
                             state.updateIndex(1);
-                            
                           },
                           title: 'Active Task',
                         ),
@@ -165,18 +175,43 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                   SizedBox(height: 8),
                   if (state.selectedIndex == 0)
-                    CardComponent(todoList: state.todoList),
+                    CardComponent(
+                      todoList: state.todoList,
+                      onReorder: (oldIndex, newIndex) {
+                        if (newIndex > oldIndex) newIndex -= 1;
+                        Provider.of<TodoProvider>(
+                          context,
+                          listen: false,
+                        ).reorderTasks(state.todoList, oldIndex, newIndex);
+                      },
+                    ),
                   if (state.selectedIndex == 1)
                     CardComponent(
                       todoList: state.todoList
                           .where((type) => type.status == 'Active')
-                          .toList(),
+                          .toList(), onReorder: (oldIndex, newIndex) {
+                        if (newIndex > oldIndex) newIndex -= 1;
+                        Provider.of<TodoProvider>(
+                          context,
+                          listen: false,
+                        ).reorderTasks(state.todoList
+                          .where((type) => type.status == 'Active')
+                          .toList(), oldIndex, newIndex);
+                      },
                     ),
                   if (state.selectedIndex == 2)
                     CardComponent(
                       todoList: state.todoList
                           .where((type) => type.status == 'Completed')
-                          .toList(),
+                          .toList(), onReorder: (oldIndex, newIndex) {
+                        if (newIndex > oldIndex) newIndex -= 1;
+                        Provider.of<TodoProvider>(
+                          context,
+                          listen: false,
+                        ).reorderTasks(state.todoList
+                          .where((type) => type.status == 'Completed')
+                          .toList(), oldIndex, newIndex);
+                      },
                     ),
                 ],
               ),

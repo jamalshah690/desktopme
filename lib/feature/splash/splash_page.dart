@@ -15,11 +15,16 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
- SessionController().getUserPreference();
-    Future.delayed(const Duration(seconds: 3), ()  {
-       SessionController().isLogin == true
-          ? Navigator.pushReplacementNamed(context, AppNameRoutes.home)
-          : Navigator.pushReplacementNamed(context, AppNameRoutes.mainUi);
+    checkingfile();
+  }
+
+  checkingfile() async {
+    await SessionController().getUserPreference().then((onValue) {
+      Future.delayed(const Duration(seconds: 3), () {
+        SessionController().isLogin == true
+            ? Navigator.pushReplacementNamed(context, AppNameRoutes.home)
+            : Navigator.pushReplacementNamed(context, AppNameRoutes.mainUi);
+      });
     });
   }
 

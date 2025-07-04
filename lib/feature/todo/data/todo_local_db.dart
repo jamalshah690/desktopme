@@ -3,7 +3,7 @@ import 'package:desktopme/feature/todo/domain/todo_model.dart';
 import 'package:desktopme/shared/services/database_service.dart';
 
 class TodoLocalDataSource {
-  DatabaseServices databaseServices = DatabaseServices();
+  DatabaseService databaseServices = DatabaseService();
 
   Future<void> createTodoTask({required TodoModel todo}) async {
     try {

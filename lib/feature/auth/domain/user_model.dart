@@ -1,11 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
-class UserInsertResult {
-  final bool success;
-  final UserModel? user;
-
-  UserInsertResult({required this.success, this.user});
-}
+ 
 class UserModel {
   final int? id;
   final String email;

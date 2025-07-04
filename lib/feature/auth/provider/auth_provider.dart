@@ -12,26 +12,46 @@ import 'package:flutter/material.dart';
 
 class AuthProvider extends ChangeNotifier {
   LocalAuthDataSource _authDataSource = LocalAuthDataSource();
- 
 
   int selectedTab = 0;
   void updateTab(int index) {
     selectedTab = index;
     notifyListeners();
   }
-  bool isLoading=false;
- bool signInStatus = false;
-  Future<void> login({required String email,required String password, required BuildContext context,}) async {
+
+  bool isLoading = false;
+  bool signInStatus = false;
+  Future<void> login({
+    required String email,
+    required String password,
+    required BuildContext context,
+  }) async {
     try {
       signInStatus = true;
       notifyListeners();
       print(signInStatus.toString());
-      final retrunUserResult = await _authDataSource.signInnUser(email,password);
+      final retrunUserResult = await _authDataSource.signInnUser(
+        email,
+        password,
+      );
       Future.delayed(Duration(seconds: 2), () {});
-      if (retrunUserResult != null) {
+      if (retrunUserResult == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(backgroundColor: AppColors.green,content: Text('✅ User SignIn successfully')),
-        ); LoggerService.logger.e("User SignIn successfully");
+          const SnackBar(
+            backgroundColor: AppColors.error,
+            content: Text('⚠️ Invalid User'),
+          ),
+        );
+        LoggerService.logger.e("Invalid User");
+        signInStatus = false;
+        notifyListeners();
+      } else {ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: AppColors.green,
+            content: Text('✅ User SignIn successfully'),
+          ),
+        );
+        LoggerService.logger.e("User SignIn successfully");
         await SessionController().saveUserPreference(retrunUserResult);
         await SessionController().getUserPreference();
         signInStatus = false;
@@ -43,21 +63,14 @@ class AuthProvider extends ChangeNotifier {
         if (kDebugMode) {
           print(signInStatus.toString());
         }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            backgroundColor: AppColors.error,
-            content: Text('⚠️ Invalid User')),
-        ); LoggerService.logger.e("Invalid User");
-        signInStatus = false;
-        notifyListeners();
+        
       }
     } catch (e) {
       signInStatus = false;
       notifyListeners();
       debugPrint(signInStatus.toString());
-       
-       LoggerService.logger.e("login catch error $e");
+
+      LoggerService.logger.e("login catch error $e");
     }
   }
 
@@ -65,26 +78,27 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> userSignUp({
     required BuildContext context,
-    required UserModel user,
+    required String email,
+    required String password
   }) async {
     try {
       signUpStatus = true;
       notifyListeners();
       print(signUpStatus.toString());
-      final userInsertResult = await _authDataSource.insertUser(user);
+      final userInsertResult = await _authDataSource.insertUser(email: email, password: password);
       Future.delayed(Duration(seconds: 2), () {});
-      if (userInsertResult != null) {
+      if (userInsertResult) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(backgroundColor: AppColors.green,content: Text('✅ User registered successfully')),
-        );LoggerService.logger.e("User registered successfully");
-        await SessionController().saveUserPreference(userInsertResult.user);
-        await SessionController().getUserPreference();
-        signUpStatus = false;
+          const SnackBar(
+            backgroundColor: AppColors.green,
+            content: Text('✅ User registered successfully'),
+          ),
+        );
+        LoggerService.logger.e("User registered successfully");
+
+        signUpStatus = false;selectedTab=0;
         notifyListeners();
-        if (kDebugMode) {
-          print("${userInsertResult.user!.id} this is user id");
-        }
-        Navigator.pushReplacementNamed(context, AppNameRoutes.home);
+ 
         if (kDebugMode) {
           print(signUpStatus.toString());
         }
@@ -92,8 +106,10 @@ class AuthProvider extends ChangeNotifier {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             backgroundColor: AppColors.error,
-            content: Text('⚠️ User already registered')),
-        );LoggerService.logger.e("User already registered");
+            content: Text('⚠️ User already registered'),
+          ),
+        );
+        LoggerService.logger.e("User already registered");
         signUpStatus = false;
         notifyListeners();
       }
@@ -101,21 +117,25 @@ class AuthProvider extends ChangeNotifier {
       signUpStatus = false;
       notifyListeners();
       debugPrint(signUpStatus.toString());
-       
-     LoggerService.logger.e("signup error $e");
+
+      LoggerService.logger.e("signup error $e");
     }
   }
 
-  Future<void>  logout(BuildContext context) async {
+  Future<void> logout(BuildContext context) async {
     try {
       isLoading = true;
       notifyListeners();
       await SessionController().logout();
       SessionController().userDataModel = UserModel(email: '', password: '');
-      SessionController().isLogin = false;ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(backgroundColor: AppColors.green,content: Text('✅ User Logout successfully')),
-        );
-         Navigator.pushReplacementNamed(context, AppNameRoutes.mainUi);
+      SessionController().isLogin = false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: AppColors.green,
+          content: Text('✅ User Logout successfully'),
+        ),
+      );
+      Navigator.pushReplacementNamed(context, AppNameRoutes.mainUi);
       isLoading = false;
       notifyListeners();
     } catch (e) {

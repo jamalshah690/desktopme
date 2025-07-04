@@ -60,7 +60,8 @@ class LoginPage extends StatelessWidget {
                           print('object');
                         }
                       : () async {
-                          await Provider.of<AuthProvider>(
+                         if(formKey.currentState!.validate()){
+                           await Provider.of<AuthProvider>(
                             context,
                             listen: false,
                           ).login(
@@ -68,6 +69,7 @@ class LoginPage extends StatelessWidget {
                             email: emailC.text.trim().toString(),
                             password: passwordC.text.trim().toString(),
                           );
+                         }else{}
                         },
                   childWidget: val.signInStatus == true
                       ? Center(

@@ -21,7 +21,7 @@ void main()async{
     windowButtonVisibility: true
      
   );
-await LoggerService.init(); // Initialize logger before anything
+await LoggerService.init();LoggerService.logger.i("App started"); // Initialize logger before anything
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.setMinimumSize(const Size(600, 800));
     await windowManager.setMaximumSize(const Size(1600, 1200));

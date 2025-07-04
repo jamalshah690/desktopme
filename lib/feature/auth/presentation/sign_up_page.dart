@@ -79,8 +79,8 @@ class _SignUpPageState extends State<SignUpPage> {
         await Provider.of<AuthProvider>(context, listen: false).userSignUp(
 
         context: context,
-        user: UserModel(email: emailC.text.trim(),
-        password: passwordC.text.trim(), )
+         email: emailC.text.trim().toString(),
+        password: passwordC.text.trim().toString(),  
       );
     }
  

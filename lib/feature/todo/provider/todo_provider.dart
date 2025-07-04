@@ -17,7 +17,11 @@ class TodoProvider extends ChangeNotifier {
     selectedDropDownTab = index;
     notifyListeners();
   }
-
+void reorderTasks(List<TodoModel> taskList, int oldIndex, int newIndex) {
+    final task = taskList.removeAt(oldIndex);
+    taskList.insert(newIndex, task);
+    notifyListeners();
+  }
   bool isAddLoading = false;
 
   Future<void> insertData({
@@ -27,7 +31,7 @@ class TodoProvider extends ChangeNotifier {
     try {
       isAddLoading = true;
       notifyListeners();
-      int userId = SessionController().userDataModel.id!;
+      int userId =await SessionController().userDataModel.id!;
       final dateNow = DateTime.now().toIso8601String();
       final todoModel = TodoModel(
         title: todo.title,
@@ -44,8 +48,8 @@ class TodoProvider extends ChangeNotifier {
         isAddLoading = false;
         LoggerService.logger.i("Task added"); 
 
+         Navigator.of(context).pop(true);
         notifyListeners();
-        Navigator.of(context).pop(true);
       });
     } catch (e) {
       isAddLoading = false;

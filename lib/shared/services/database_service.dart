@@ -1,15 +1,28 @@
-import 'package:desktopme/shared/services/logger_service.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:path/path.dart'; 
 
-class DatabaseServices {
+/// A singleton service that manages the local SQLite database
+class DatabaseService {
+  static final DatabaseService instance = DatabaseService._internal();
   static Database? _db;
 
-  /// Initializes the database and creates tables schema if not exist
+  factory DatabaseService() => instance;
+
+  DatabaseService._internal();
+
+  /// Provides the database instance, initializing it if needed
+  Future<Database> get database async {
+    if (_db != null) return _db!;
+    _db = await _initDB();
+    return _db!;
+  }
+
+  /// Initializes the database and creates tables if not exist
   Future<Database> _initDB() async {
     try {
-      final dbPath = await databaseFactoryFfi.getDatabasesPath();
-      final path = join(dbPath, 'todo_app.db');
+      final directory = await getApplicationDocumentsDirectory();
+      final path = join(directory.path, 'UseMe.db');
 
       return await databaseFactoryFfi.openDatabase(
         path,
@@ -20,9 +33,7 @@ class DatabaseServices {
         ),
       );
     } catch (e) {
-      print(' Error initializing database: $e'); 
-LoggerService.logger.e("Failed to initializing database $e");
-
+      print('❌ Error initializing database: $e');
       rethrow;
     }
   }
@@ -36,7 +47,7 @@ LoggerService.logger.e("Failed to initializing database $e");
   Future<void> _onCreate(Database db, int version) async {
     try {
       await db.execute('''
-      CREATE TABLE Users (
+      CREATE TABLE users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL
@@ -45,28 +56,30 @@ LoggerService.logger.e("Failed to initializing database $e");
 
       await db.execute('''
       CREATE TABLE todos (
-         id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    description TEXT,
-    status TEXT NOT NULL CHECK(status IN ('Active', 'Completed')),
-    createdAt TEXT NOT NULL,
-    updatedAt TEXT NOT NULL,
-    userId INTEGER NOT NULL
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      description TEXT,
+      status TEXT NOT NULL CHECK(status IN ('Active', 'Completed')),
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL,
+      userId INTEGER NOT NULL
       )
-    ''');
-    } catch (e) {
-      print(' Error creating tables: $e'); 
-LoggerService.logger.e("Failed to Ctreating table $e");
+      ''');
 
+    } catch (e) {
+      print('❌ Error creating tables: $e');
       rethrow;
     }
   }
 
-
-  Future<Database> get database async {
-    if (_db != null) return _db!;
-    _db = await _initDB();
-    return _db!;
+  /// Closes the database connection
+  Future<void> close() async {
+    try {
+      final dbClient = await database;
+      await dbClient.close();
+      _db = null;
+    } catch (e) {
+      print('❌ Error closing database: $e');
+    }
   }
-  // Optional: fetch users
 }

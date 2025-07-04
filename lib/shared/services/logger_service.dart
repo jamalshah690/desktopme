@@ -1,53 +1,79 @@
 import 'package:logger/logger.dart';
-import 'dart:io'; 
-
+import 'dart:io';
 import 'package:path/path.dart' as path;
+
 class LoggerService {
   static late Logger logger;
+
   static Future<void> init() async {
-    final output = await FileOutput.create();
-    logger = Logger(
-      printer: PrettyPrinter(
-        methodCount: 2,
-        errorMethodCount: 8,
-        lineLength: 100,
-        colors: false,
-        printEmojis: false,
-        printTime: true,
-      ),
-      output: output,
-    );
+    try {
+      final output = await FileOutput.create();
+      logger = Logger(
+        printer: PrettyPrinter(
+          methodCount: 2,
+          errorMethodCount: 8,
+          lineLength: 100,
+          colors: false,
+          printEmojis: false,
+          printTime: true,
+        ),
+        output: output,
+      );
+      logger.i("Logger initialized successfully.");
+    } catch (e) {
+      // Fallback to console logger (release may ignore this)
+      logger = Logger(
+        printer: PrettyPrinter(printTime: true),
+      );
+      logger.e("Logger initialization failed: $e");
+    }
   }
 }
+
 class FileOutput extends LogOutput {
   final File logFile;
 
   FileOutput._(this.logFile);
 
   static Future<FileOutput> create() async {
-    final userProfile = Platform.environment['USERPROFILE']; // C:\Users\volker
-    if (userProfile == null) {
-      throw Exception('USERPROFILE not found');
-    }
+    try {
+      final Directory baseDir;
 
-    final logDirPath = path.join(userProfile, 'Documents', 'MyAppLogs');
-    final logDir = Directory(logDirPath);
-    if (!await logDir.exists()) {
-      await logDir.create(recursive: true); // 👈 will now work!
-    }
+      if (Platform.isWindows) {
+        final userProfile = Platform.environment['USERPROFILE'];
+        if (userProfile == null) {
+          throw Exception('USERPROFILE not found');
+        }
+        baseDir = Directory(path.join(userProfile, 'Documents', 'MyAppLogs'));
+      } else if (Platform.isLinux || Platform.isMacOS) {
+        baseDir = Directory(path.join(Platform.environment['HOME']!, 'MyAppLogs'));
+      } else {
+        throw UnsupportedError('Unsupported OS');
+      }
 
-    final logFile = File(path.join(logDirPath, 'app_log.txt'));
-    if (!await logFile.exists()) {
-      await logFile.create();
-    }
+      if (!await baseDir.exists()) {
+        await baseDir.create(recursive: true);
+      }
 
-    return FileOutput._(logFile);
+      final File logFile = File(path.join(baseDir.path, 'app_log.txt'));
+      if (!await logFile.exists()) {
+        await logFile.create();
+      }
+
+      return FileOutput._(logFile);
+    } catch (e) {
+      throw Exception("Error creating log file: $e");
+    }
   }
 
   @override
   void output(OutputEvent event) {
-    for (var line in event.lines) {
-      logFile.writeAsStringSync('$line\n', mode: FileMode.append);
+    try {
+      for (var line in event.lines) {
+        logFile.writeAsStringSync('$line\n', mode: FileMode.append);
+      }
+    } catch (e) {
+      // Avoid crashing in release
     }
   }
 }
