@@ -1,3 +1,4 @@
 class AppIcons {
-  static const String appIcon = 'assets/icons/app_icon.png'; 
+  static const String editIcon = 'assets/editIcon.svg'; 
+    static const String deleteIcon = 'assets/deleteIcon.svg'; 
 }

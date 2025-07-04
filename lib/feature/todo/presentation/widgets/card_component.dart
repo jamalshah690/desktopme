@@ -1,6 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
 
+import 'package:desktopme/core/configs/assets/app_icons.dart.dart';
+import 'package:desktopme/core/configs/assets/images_urls.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
@@ -8,6 +10,7 @@ import 'package:desktopme/core/configs/colors/app_colors.dart';
 import 'package:desktopme/feature/todo/domain/todo_model.dart';
 import 'package:desktopme/feature/todo/presentation/widgets/delete_dailog.dart';
 import 'package:desktopme/feature/todo/presentation/widgets/edit_add_dailog.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 
 class CardComponent extends StatelessWidget {
@@ -18,7 +21,25 @@ class CardComponent extends StatelessWidget {
   Widget build(BuildContext context) {
     log('search off');
     return todoList.isEmpty
-        ? Center(child: Text('List is Empty'))
+        ? Center(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0).copyWith(top: 100),
+              child: Column(
+                children: [
+                  Image.asset(ImagesUrls.todoList, width: 120, height: 120),
+                  SizedBox(height: 3),
+                  Text(
+                    'List is Empty',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: AppColors.black,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
         : AnimationLimiter(
             child: ListView.builder(
               padding: EdgeInsets.zero,
@@ -64,7 +85,7 @@ class CardComponent extends StatelessWidget {
                                   ),
                                 ),
                                 Text(
-                               formatDate(   todo.createdAt),
+                                 'Date : ' +formatDate(todo.createdAt),
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w700,
@@ -81,7 +102,8 @@ class CardComponent extends StatelessWidget {
                               ),
                             ),
                             SizedBox(height: 4),
-                            Row(mainAxisAlignment: MainAxisAlignment.start,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
                               children: [
                                 Text(
                                   'Status  : ',
@@ -90,11 +112,14 @@ class CardComponent extends StatelessWidget {
                                     color: AppColors.black,
                                     fontWeight: FontWeight.w700,
                                   ),
-                                ),Text(
+                                ),
+                                Text(
                                   '${todo.status}',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: todo.status=='Active'?AppColors.lightBlack:AppColors.green,
+                                    color: todo.status == 'Active'
+                                        ? AppColors.lightBlack
+                                        : AppColors.green,
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
@@ -105,8 +130,6 @@ class CardComponent extends StatelessWidget {
                               children: [
                                 InkWell(
                                   onTap: () {
-
-                                   
                                     showDialog(
                                       context: context,
                                       builder: (_) => DeleteTaskDialog(
@@ -120,12 +143,8 @@ class CardComponent extends StatelessWidget {
                                         },
                                       ),
                                     );
-                                     
                                   },
-                                  child: Icon(
-                                    Icons.delete_forever,
-                                    color: AppColors.error,
-                                  ),
+                                  child: SvgPicture.asset(AppIcons.deleteIcon,width: 28,height: 25,),
                                 ),
                                 InkWell(
                                   onTap: () {
@@ -151,10 +170,7 @@ class CardComponent extends StatelessWidget {
                                       ),
                                     );
                                   },
-                                  child: Icon(
-                                    Icons.edit_document,
-                                    color: AppColors.lightPurple,
-                                  ),
+                                  child: SvgPicture.asset(AppIcons.editIcon),
                                 ),
                               ],
                             ),
@@ -167,7 +183,9 @@ class CardComponent extends StatelessWidget {
               },
             ),
           );
-  } String formatDate(String date) {
+  }
+
+  String formatDate(String date) {
     final parsedDate = DateTime.parse(date); // Parses "2025-06-25"
     final formatter = DateFormat("MMM d-yyyy"); // Converts to "Jun 25-2025"
     return formatter.format(parsedDate);
