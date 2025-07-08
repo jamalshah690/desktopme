@@ -2,12 +2,13 @@ import 'dart:developer';
 
 import 'package:desktopme/core/configs/colors/app_colors.dart';
 import 'package:desktopme/core/enums/view_state.dart';
-import 'package:desktopme/feature/auth/domain/user_model.dart';
-import 'package:desktopme/feature/auth/provider/auth_provider.dart';
+import 'package:desktopme/feature/auth/bloc/auth_bloc.dart';
+import 'package:desktopme/feature/auth/bloc/bloc_event.dart';
+import 'package:desktopme/feature/auth/bloc/bloc_state.dart'; 
 import 'package:desktopme/shared/components/customfield_component.dart';
 import 'package:desktopme/shared/components/primary_button.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart'; 
 
 class SignUpPage extends StatefulWidget {
   SignUpPage({super.key});
@@ -38,6 +39,14 @@ class _SignUpPageState extends State<SignUpPage> {
           CustomFieldComponents(
             hint: 'enter a email',
             controller: emailC,
+            onTapOutside: (p0) {
+              FocusManager.instance.primaryFocus!.unfocus();
+            },
+            onChanged: (val) {
+              BlocProvider.of<AuthBloc>(
+                context,
+              ).add(EmailChangeEvent(email: val));
+            },
             validator: (v) {
               if (v!.isEmpty) {
                 return 'feild Must not be Empty';
@@ -52,52 +61,63 @@ class _SignUpPageState extends State<SignUpPage> {
           ),
           SizedBox(height: 8),
           CustomFieldComponents(
+            onChanged: (val) {
+              BlocProvider.of<AuthBloc>(
+                context,
+              ).add(PasswordChangeEvent(password: val));
+            },
+            onTapOutside: (p0) {
+              FocusManager.instance.primaryFocus!.unfocus();
+            },
             hint: 'enter a password',
-            controller: passwordC,
-            obscureText: true,
             validator: (v) {
               if (v!.isEmpty) {
                 return 'feild Must not be Empty';
               }
               return null;
             },
+            controller: passwordC,
+            obscureText: true,
           ),
           SizedBox(height: 30),
 
           Center(
-            child: Consumer<AuthProvider>(
-              builder: (builder, c, cd) {
+            child: BlocBuilder<AuthBloc, AuthSate>(
+              builder: (BuildContext context, state) {
                 return PrimaryButton(
-                  onTap: c.isLoading
+                  onTap: state.apiStatus == StatusApp.Loading
                       ? () {
-                        print('object');
-                      }
+                          print('object');
+                        }
                       : () async {
-                        
-    if (formKey.currentState!.validate()) {
-      
-        await Provider.of<AuthProvider>(context, listen: false).userSignUp(
+                          if (formKey.currentState!.validate()) {
+                            // await Provider.of<AuthProvider>(
+                            //   context,
+                            //   listen: false,
+                            // ).login(
+                            //   context: context,
+                            //   email: emailC.text.trim().toString(),
+                            //   password: passwordC.text.trim().toString(),
+                            // );
 
-        context: context,
-         email: emailC.text.trim().toString(),
-        password: passwordC.text.trim().toString(),  
-      );
-    }
- 
+                            BlocProvider.of<AuthBloc>(
+                              context,
+                            ).add(SignUpSubmitButtonEvent());
+                          } else {}
                         },
-                  childWidget: Consumer<AuthProvider>(
-                    builder: (builder, val, child) {
-                      return val.signUpStatus==true?
-                           Center(child: CircularProgressIndicator.adaptive(backgroundColor: AppColors.white,))
-                          : Text(
-                              'Sign Up',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.white,
-                              ),
-                            );
-                    },
-                  ),
+                  childWidget: state.apiStatus == StatusApp.Loading
+                      ? Center(
+                          child: CircularProgressIndicator.adaptive(
+                            backgroundColor: AppColors.white,
+                          ),
+                        )
+                      : Text(
+                          'Sign Up',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.white,
+                          ),
+                        ),
                   elevation: 0,
                   gradient: const LinearGradient(
                     colors: [AppColors.purple, AppColors.lightPurple],

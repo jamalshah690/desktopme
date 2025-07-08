@@ -23,6 +23,7 @@ class DatabaseService {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final path = join(directory.path, 'UseMe.db');
+      print(path);
 
       return await databaseFactoryFfi.openDatabase(
         path,

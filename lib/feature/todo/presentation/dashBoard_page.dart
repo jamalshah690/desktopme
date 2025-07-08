@@ -1,14 +1,19 @@
 import 'package:desktopme/core/configs/colors/app_colors.dart';
-import 'package:desktopme/feature/auth/provider/auth_provider.dart';
-import 'package:desktopme/feature/todo/domain/todo_model.dart';
+import 'package:desktopme/core/configs/routes/routes.dart';
+import 'package:desktopme/core/enums/view_state.dart';
+import 'package:desktopme/feature/auth/bloc/auth_bloc.dart';
+import 'package:desktopme/feature/auth/bloc/bloc_event.dart' hide TabEvent;
+import 'package:desktopme/feature/auth/bloc/bloc_state.dart';
+import 'package:desktopme/feature/todo/bloc/todo_bloc.dart';
+import 'package:desktopme/feature/todo/bloc/todo_event.dart';
+import 'package:desktopme/feature/todo/bloc/todo_state.dart';  
 import 'package:desktopme/feature/todo/presentation/widgets/add_dailog.dart';
 import 'package:desktopme/feature/todo/presentation/widgets/booking_tab.dart';
-import 'package:desktopme/feature/todo/presentation/widgets/card_component.dart';
-import 'package:desktopme/feature/todo/provider/todo_provider.dart';
+import 'package:desktopme/feature/todo/presentation/widgets/card_component.dart'; 
 import 'package:desktopme/shared/components/primary_button.dart';
 import 'package:desktopme/shared/services/sessionManger/session_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';  
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -28,8 +33,9 @@ class _DashboardPageState extends State<DashboardPage> {
   checking() async {
     await SessionController().userDataModel.id.toString().isEmpty
         ? null
-        : Provider.of<TodoProvider>(context, listen: false).getAllTask();
-    Provider.of<TodoProvider>(context, listen: false).selectedIndex = 0;
+        : BlocProvider.of<TodoBloc>(context).add(TaskFetch());
+  
+    BlocProvider.of<TodoBloc>(context).add(TabEvent(selectedTab: 0)); 
   }
 
   @override
@@ -73,38 +79,49 @@ class _DashboardPageState extends State<DashboardPage> {
               bgColor: Colors.transparent,
             ),
           ),
-          Consumer<AuthProvider>(
-            builder: (builder, c, cd) {
+          BlocConsumer<AuthBloc, AuthSate>(
+            listener: (context, state) {
+              if (state.apiStatus == StatusApp.Completed) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    backgroundColor: AppColors.green,
+                    content: Text('✅ User Logout successfully'),
+                  ),
+                );
+                Navigator.pushReplacementNamed(context, AppNameRoutes.mainUi);
+                 BlocProvider.of<AuthBloc>(context).emit(
+                          state.copyWith(apiStatus: StatusApp.initializing),
+                        );
+              }else{
+                 BlocProvider.of<AuthBloc>(context).emit(
+                          state.copyWith(apiStatus: StatusApp.initializing),
+                        );
+              }
+            },
+            builder: (builder, state) {
               return Padding(
                 padding: const EdgeInsets.all(12.0),
                 child: PrimaryButton(
-                  onTap: c.isLoading
+                  onTap: state.apiStatus == StatusApp.Loading
                       ? () {
                           print('object');
                         }
                       : () async {
-                          await Provider.of<AuthProvider>(
-                            context,
-                            listen: false,
-                          ).logout(context);
+                          BlocProvider.of<AuthBloc>(context).add(LogOutEvent());
                         },
-                  childWidget: Consumer<AuthProvider>(
-                    builder: (builder, val, child) {
-                      return val.signUpStatus == true
-                          ? Center(
-                              child: CircularProgressIndicator.adaptive(
-                                backgroundColor: AppColors.white,
-                              ),
-                            )
-                          : Text(
-                              'LogOut',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: AppColors.white,
-                              ),
-                            );
-                    },
-                  ),
+                  childWidget: state.apiStatus == StatusApp.Loading
+                      ? Center(
+                          child: CircularProgressIndicator.adaptive(
+                            backgroundColor: AppColors.white,
+                          ),
+                        )
+                      : Text(
+                          'LogOut',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.white,
+                          ),
+                        ),
                   elevation: 0,
                   gradient: const LinearGradient(
                     colors: [AppColors.purple, AppColors.lightPurple],
@@ -123,8 +140,8 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(30.0),
-        child: Consumer<TodoProvider>(
-          builder: (builder, state, child) {
+        child: BlocConsumer<TodoBloc,TodoState>(
+          builder: (builder, state, ) {
             return SingleChildScrollView(
               child: Column(
                 children: [
@@ -141,32 +158,32 @@ class _DashboardPageState extends State<DashboardPage> {
                       children: [
                         BookingTabs(
                           index: 0,
-                          selectedIndex: state.selectedIndex,
-                          onTap: () async {
-                            state.updateIndex(0);
-                            SessionController().userDataModel.id
-                                    .toString()
+                          selectedIndex: state.selectedTab!,
+                          onTap: () async { 
+                            BlocProvider.of<TodoBloc>(context).add(TabEvent(selectedTab: 0));
+                              SessionController().userDataModel.id
+                                      .toString()
                                     .isEmpty
-                                ? null
-                                : await state.getAllTask();
+                                 ? null
+                                 : BlocProvider.of<TodoBloc>(context).add(TaskFetch());
                           },
                           title: 'All Task',
                         ),
                         SizedBox(width: 8),
                         BookingTabs(
                           index: 1,
-                          selectedIndex: state.selectedIndex,
+                          selectedIndex: state.selectedTab!,
                           onTap: () {
-                            state.updateIndex(1);
+                            BlocProvider.of<TodoBloc>(context).add(TabEvent(selectedTab: 1));
                           },
                           title: 'Active Task',
                         ),
                         SizedBox(width: 8),
                         BookingTabs(
                           index: 2,
-                          selectedIndex: state.selectedIndex,
+                          selectedIndex: state.selectedTab!,
                           onTap: () {
-                            state.updateIndex(2);
+                            BlocProvider.of<TodoBloc>(context).add(TabEvent(selectedTab: 2));
                           },
                           title: 'Complete Task',
                         ),
@@ -174,49 +191,53 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ),
                   SizedBox(height: 8),
-                  if (state.selectedIndex == 0)
+                  if (state.selectedTab == 0)
                     CardComponent(
                       todoList: state.todoList,
                       onReorder: (oldIndex, newIndex) {
                         if (newIndex > oldIndex) newIndex -= 1;
-                        Provider.of<TodoProvider>(
+                        BlocProvider.of<TodoBloc>(
                           context,
                           listen: false,
-                        ).reorderTasks(state.todoList, oldIndex, newIndex);
+                        ).add(ReorderTodoEvent(oldIndex: oldIndex, newIndex: newIndex, taskList: state.todoList));
                       },
                     ),
-                  if (state.selectedIndex == 1)
+                  if (state.selectedTab == 1)
                     CardComponent(
                       todoList: state.todoList
                           .where((type) => type.status == 'Active')
-                          .toList(), onReorder: (oldIndex, newIndex) {
+                          .toList(),
+                      onReorder: (oldIndex, newIndex) {
                         if (newIndex > oldIndex) newIndex -= 1;
-                        Provider.of<TodoProvider>(
+                        BlocProvider.of<TodoBloc>(
                           context,
                           listen: false,
-                        ).reorderTasks(state.todoList
-                          .where((type) => type.status == 'Active')
-                          .toList(), oldIndex, newIndex);
+                        ).add(ReorderTodoEvent(oldIndex: oldIndex, newIndex: newIndex, taskList: state.todoList
+                              .where((type) => type.status == 'Active')
+                              .toList()));
+                        
                       },
                     ),
-                  if (state.selectedIndex == 2)
+                  if (state.selectedTab == 2)
                     CardComponent(
                       todoList: state.todoList
                           .where((type) => type.status == 'Completed')
-                          .toList(), onReorder: (oldIndex, newIndex) {
+                          .toList(),
+                      onReorder: (oldIndex, newIndex) {
                         if (newIndex > oldIndex) newIndex -= 1;
-                        Provider.of<TodoProvider>(
+                        
+                         BlocProvider.of<TodoBloc>(
                           context,
                           listen: false,
-                        ).reorderTasks(state.todoList
-                          .where((type) => type.status == 'Completed')
-                          .toList(), oldIndex, newIndex);
+                        ).add(ReorderTodoEvent(oldIndex: oldIndex, newIndex: newIndex, taskList: state.todoList
+                              .where((type) => type.status == 'Completed')
+                              .toList()));
                       },
                     ),
                 ],
               ),
             );
-          },
+          }, listener: (BuildContext context, TodoState state) {  },
         ),
       ),
     );

@@ -9,7 +9,7 @@ class CustomFieldComponents extends StatelessWidget {
   final String? prefixIconSvg;
   final TextEditingController controller;
   final VoidCallback? onpressed;
-  final VoidCallback? onTap;
+  final VoidCallback? onTap; final Function(PointerDownEvent)? onTapOutside;
   final String? Function(String?)? validator;
   final bool obscureText;
   final TextInputType? keyboardType;
@@ -31,7 +31,7 @@ class CustomFieldComponents extends StatelessWidget {
     this.obscureText = false,
     this.keyboardType,
     this.onChanged,
-    this.onTap,
+    this.onTap, this.onTapOutside
   });
 
   @override
@@ -42,9 +42,7 @@ class CustomFieldComponents extends StatelessWidget {
     return const SizedBox.shrink();
   },
       readOnly: enabled,
-      onTapOutside: (v) {
-        FocusScope.of(context).unfocus();
-      },
+       onTapOutside: onTapOutside,
       onTap: onTap ?? () {},
       keyboardType: keyboardType,
       cursorColor: AppColors.KBlacks,
